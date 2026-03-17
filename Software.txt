@@ -1,0 +1,81 @@
+
+// Target: ATtiny85
+// Board: Bare ATtiny85, 1MHz internal oscillator
+// Programmer: ICSP via USB
+//
+// OLED details
+// Type SSD1306
+// Voltage range 3 to 5V DC
+// Display 128x64 pixels
+//
+// Connections:
+// ATTiny85 pin 5 (PB0/MOSI/SDA) to OLED SDA
+// ATTiny85 pin 7 (PB2/SCK/SCL) to OLED SCL
+// ATTiny85 pin 2 (PCINT3/CLKI/OC1B/ADC3) to (+ve) on beeper device
+
+#include <TinyWireM.h>
+#define TINY4KOLED_QUICK_BEGIN
+#include <Tiny4kOLED.h>
+
+void setup() {
+
+  // Initialize OLED screen
+  oled.begin(128, 64, sizeof(tiny4koled_init_128x64br), tiny4koled_init_128x64br);
+  oled.enableChargePump(); // The default is off, but most boards need this.
+  oled.setRotation(1);     // The default orientation is not the most commonly used.
+
+  // Two fonts are supplied with this library, FONT8X16 and FONT6X8
+  oled.setFontX2Smooth(FONT8X16);
+
+  // To clear all the memory
+  oled.clear();
+  oled.on();
+
+  // Set up the peeper
+  pinMode(3, OUTPUT);
+  digitalWrite(3, LOW);
+
+}
+
+// 30 minutes = 1800 seconds
+unsigned long countdowntotal=1800;
+unsigned long countdown=countdowntotal;
+unsigned long currentTime;
+unsigned long elapsedTime;
+unsigned long timenow;
+char t[12]; // buffer for the time string for printing.
+
+void loop() {
+
+  do {
+  currentTime = millis(); // Get the current time
+  oled.setCursor(0, 0);
+  int minutes=countdown / 60;
+  int seconds=countdown % 60;
+  sprintf (t, "%02u:%02u  ",minutes, seconds);
+  oled.print(t);
+  
+// exit after idling for the remainder of the current second.
+    timenow=millis();
+    while (timenow<currentTime+1000) {
+    timenow=millis();
+    }
+    countdown -= 1;
+  } while (countdown > 0);
+
+
+ oled.setCursor(0, 0);
+ oled.print(F("Time is"));
+ oled.setCursor(0, 4);
+ oled.print(F("   up!"));
+
+ digitalWrite(3, HIGH);
+ //delay(100);
+ //digitalWrite(3, LOW);
+ 
+ // Wait for a reset.
+while(1) {;
+  //
+  }
+
+}
